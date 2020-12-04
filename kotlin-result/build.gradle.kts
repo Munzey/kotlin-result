@@ -45,7 +45,12 @@ kotlin {
             }
         }
 
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                implementation("io.arrow-kt:arrow-continuations:0.11.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinCoroutines}")
+            }
+        }
 
         val jvmTest by getting {
             dependencies {

@@ -1,5 +1,6 @@
 package com.github.michaelbull.result
 
+import kotlinx.coroutines.runBlocking
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
@@ -25,6 +26,19 @@ class BindingBenchmark {
 
         blackhole.consume(result)
     }
+    @Benchmark
+    fun bindingArrowSuccess(blackhole: Blackhole) {
+        runBlocking {
+            val result = bindingArrow<Int, Error> {
+                val x = provideX().invoke()
+                val y = provideY().invoke()
+                x + y
+            }
+
+            blackhole.consume(result)
+
+        }
+    }
 
     @Benchmark
     fun bindingFailure(blackhole: Blackhole) {
@@ -38,26 +52,38 @@ class BindingBenchmark {
     }
 
     @Benchmark
-    fun andThenSuccess(blackhole: Blackhole) {
-        val result = provideX().andThen { x ->
-            provideY().andThen { y ->
-                Ok(x + y)
+    fun bindingArrowFailure(blackhole: Blackhole) {
+        runBlocking {
+            val result = bindingArrow<Int, Error> {
+                val x = provideX().invoke()
+                val z = provideZ().invoke()
+                x + z
             }
+            blackhole.consume(result)
         }
-
-        blackhole.consume(result)
     }
 
-    @Benchmark
-    fun andThenFailure(blackhole: Blackhole) {
-        val result = provideX().andThen { x ->
-            provideZ().andThen { z ->
-                Ok(x + z)
-            }
-        }
-
-        blackhole.consume(result)
-    }
+//    @Benchmark
+//    fun andThenSuccess(blackhole: Blackhole) {
+//        val result = provideX().andThen { x ->
+//            provideY().andThen { y ->
+//                Ok(x + y)
+//            }
+//        }
+//
+//        blackhole.consume(result)
+//    }
+//
+//    @Benchmark
+//    fun andThenFailure(blackhole: Blackhole) {
+//        val result = provideX().andThen { x ->
+//            provideZ().andThen { z ->
+//                Ok(x + z)
+//            }
+//        }
+//
+//        blackhole.consume(result)
+//    }
 
     @State(Scope.Thread)
     private companion object {
