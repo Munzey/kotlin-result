@@ -2,7 +2,6 @@ package com.github.michaelbull.result
 
 import arrow.continuations.generic.DelimContScope
 import arrow.continuations.generic.DelimitedScope
-import kotlinx.coroutines.runBlocking
 
 public fun interface Just<F, V> {
     public fun just(v: V): F
@@ -10,10 +9,10 @@ public fun interface Just<F, V> {
 
 public inline fun <V, E> ok(v: V): Result<V, E> = Ok(v)
 
-public suspend inline fun <V, E> bindingArrow(crossinline block: suspend ResultEffect<*, E>.() -> V): Result<V, E> =
+public inline fun <V, E> bindingArrow(crossinline block: suspend ResultEffect<*, E>.() -> V): Result<V, E> =
     computation(::ok, { ResultEffect { it } }, block)
 
-public suspend inline fun <FV, Eff: Effect<FV>, V> computation(
+public inline fun <FV, Eff: Effect<FV>, V> computation(
     just : Just<FV, V>,
     crossinline eff: (DelimitedScope<FV>) -> Eff,
     crossinline block: suspend Eff.() -> V
@@ -30,20 +29,20 @@ public fun interface ResultEffect<V, E> : Effect<Result<V, E>> {
 }
 
 
+// Sample
+
 public object BindingError
 
 public fun main() {
     fun provideX(): Result<Int, BindingError> = Ok(1)
     fun provideY(): Result<String, BindingError> = Ok("2")
 
-    runBlocking {
-        val result: Result<Int, BindingError> = bindingArrow {
-            val x = provideX()
-            val y = provideY()
-            val z = x() + y().toInt()
-            println(z)
-            z
-        }
+    val result: Result<Int, BindingError> = bindingArrow {
+        val x = provideX()
+        val y = provideY()
+        val z = x() + y().toInt()
+        println(z)
+        z
     }
 }
 

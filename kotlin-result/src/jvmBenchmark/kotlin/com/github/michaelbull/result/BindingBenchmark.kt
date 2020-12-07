@@ -1,6 +1,5 @@
 package com.github.michaelbull.result
 
-import kotlinx.coroutines.runBlocking
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
@@ -28,16 +27,14 @@ class BindingBenchmark {
     }
     @Benchmark
     fun bindingArrowSuccess(blackhole: Blackhole) {
-        runBlocking {
-            val result = bindingArrow<Int, Error> {
-                val x = provideX().invoke()
-                val y = provideY().invoke()
-                x + y
-            }
-
-            blackhole.consume(result)
-
+        val result = bindingArrow<Int, Error> {
+            val x = provideX().invoke()
+            val y = provideY().invoke()
+            x + y
         }
+
+        blackhole.consume(result)
+
     }
 
     @Benchmark
@@ -53,14 +50,12 @@ class BindingBenchmark {
 
     @Benchmark
     fun bindingArrowFailure(blackhole: Blackhole) {
-        runBlocking {
-            val result = bindingArrow<Int, Error> {
-                val x = provideX().invoke()
-                val z = provideZ().invoke()
-                x + z
-            }
-            blackhole.consume(result)
+        val result = bindingArrow<Int, Error> {
+            val x = provideX().invoke()
+            val z = provideZ().invoke()
+            x + z
         }
+        blackhole.consume(result)
     }
 
 //    @Benchmark
