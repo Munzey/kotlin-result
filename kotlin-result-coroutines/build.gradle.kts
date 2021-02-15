@@ -5,6 +5,8 @@ plugins {
     kotlin("multiplatform")
 }
 
+apply(plugin = "kotlinx-atomicfu")
+
 kotlin {
     sourceSets {
         all {

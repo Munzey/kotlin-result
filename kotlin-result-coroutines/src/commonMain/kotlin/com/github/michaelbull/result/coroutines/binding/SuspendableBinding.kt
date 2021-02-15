@@ -3,15 +3,16 @@ package com.github.michaelbull.result.coroutines.binding
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.cancel
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
 
 /**
  * Suspending variant of [binding][com.github.michaelbull.result.binding].
@@ -44,19 +45,17 @@ internal class SuspendableResultBindingImpl<E>(
     override val coroutineContext: CoroutineContext
 ) : SuspendableResultBinding<E> {
 
-    private val mutex = Mutex()
-    lateinit var internalError: Err<E>
+    private val _internalError = atomic<Err<E>?>(null)
+    val internalError: Err<E>
+        get() = _internalError.value!!
 
     override suspend fun <V> Result<V, E>.bind(): V {
-        return when (this) {
-            is Ok -> value
-            is Err -> {
-                mutex.withLock {
-                    if (::internalError.isInitialized.not()) {
-                        internalError = this
-                        this@SuspendableResultBindingImpl.cancel(BindCancellationException)
-                    }
-                    throw BindCancellationException
+        return suspendCancellableCoroutine {
+            when (this) {
+                is Ok -> it.resume(value)
+                is Err -> {
+                    _internalError.compareAndSet(null, this)
+                    this@SuspendableResultBindingImpl.cancel(BindCancellationException)
                 }
             }
         }

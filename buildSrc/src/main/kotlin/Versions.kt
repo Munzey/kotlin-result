@@ -6,4 +6,5 @@ object Versions {
     const val ktor = "1.5.1"
     const val logback = "1.2.3"
     const val versionsPlugin = "0.36.0"
+    const val atomicfu = "0.15.1"
 }

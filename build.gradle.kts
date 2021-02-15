@@ -12,6 +12,12 @@ val signingPassword: String? by project
 
 description = "A Result monad for modelling success or failure operations."
 
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${Versions.atomicfu}")
+    }
+}
+
 plugins {
     base
     id("com.github.ben-manes.versions") version Versions.versionsPlugin
